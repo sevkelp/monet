@@ -114,13 +114,13 @@ class FashGan(Model):
 
     def train_step(self, batch):
         random_input = tf.random.uniform((128,128,1))
-        fake_images = self.generator(random_input)
+        fake_images = self.generator(random_input, training=False)
         real_images = batch
 
         # Train discriminator
         with tf.GradientTape() as d_tape :
-            y_hat_fake = self.discriminator(fake_images)
-            y_hat_real = self.discriminator(real_images)
+            y_hat_fake = self.discriminator(fake_images,training=True)
+            y_hat_real = self.discriminator(real_images,training=True)
             y_fake = tf.ones_like(y_hat_fake) - 0.15
             y_real = tf.zeros_like(y_hat_real) + 0.15
             y_hat_tot = tf.concat([y_hat_fake,y_hat_real],axis=0)
@@ -133,9 +133,9 @@ class FashGan(Model):
         # Train generator
         with tf.GradientTape() as g_tape :
             random_input = tf.random.uniform((128,128,1))
-            fake_images = self.generator(random_input)
+            fake_images = self.generator(random_input,training=True)
 
-            y_hat_fake = self.discriminator(fake_images)
+            y_hat_fake = self.discriminator(fake_images,training=False)
             y_fake = tf.zeros_like(y_hat_fake) # inverse since we want the generator to be able to fool the discriminator
             generator_loss = self.g_loss(y_hat_fake,y_fake)
         g_grad = g_tape.gradient(generator_loss,self.generator.trainable_variables)
